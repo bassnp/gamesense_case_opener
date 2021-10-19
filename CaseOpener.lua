@@ -148,7 +148,7 @@ end)
 --hehe
 local points_location    = "case_points"
 local inventory_location = "case_inventory"
-local points    = database_read(points_location) or 50000
+local points    = database_read(points_location) or 5000
 local inventory = database_read(inventory_location) or {}
 
 local hide_case_opener = database_read("cases_hide_menu") or false
