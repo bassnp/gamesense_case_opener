@@ -175,13 +175,13 @@ end
 
 local function log(text, int)
     if int == 1 then
-        client_color_log(255, 69, 0,    "[Bassn's Cases] " .. text)
+        client_color_log(255, 69, 0,    "[Bass's Cases] " .. text)
     elseif int == 2 then
-        client_color_log(0, 255, 69,    "[Bassn's Cases] " .. text)
+        client_color_log(0, 255, 69,    "[Bass's Cases] " .. text)
     elseif int == 3 then
-        client_color_log(0, 100, 255,   "[Bassn's Cases] " .. text)
+        client_color_log(0, 100, 255,   "[Bass's Cases] " .. text)
     elseif int == 4 then
-        client_color_log(255, 255, 255, "[Bassn's Cases] " .. text)
+        client_color_log(255, 255, 255, "[Bass's Cases] " .. text)
     end
 end
 
