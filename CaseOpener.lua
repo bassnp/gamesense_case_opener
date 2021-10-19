@@ -66,7 +66,7 @@ local function index_all_cases() -- gotta do right here so the combobox has all 
 end
 index_all_cases()
 
-local mp = {"LUA", "A"}
+local mp = {"LUA", "B"}
 local menu = {
     cases_enable  = ui_new_checkbox(mp[1], mp[2], "⟡ Bassn's Case Opener ⟡"),
     cases_hotkey  = ui_new_hotkey  (mp[1], mp[2], " Open Case Hotkey"),
