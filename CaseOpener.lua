@@ -622,7 +622,7 @@ local function get_r_skin(luck, item_num, cfg)
         return_skin.wear  = "Well-Worn"
         total_points = total_points * 0.8
     elseif w_roll > 17.85  and w_roll <= 61.03 then
-        return_skin.wear  = "Feild Tested"
+        return_skin.wear  = "Field Tested"
         total_points = total_points * 1
     elseif w_roll > 61.03 and w_roll <= 85.71 then
         return_skin.wear  = "Minimal Wear"
