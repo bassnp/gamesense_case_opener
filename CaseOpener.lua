@@ -1,6 +1,4 @@
  --[[
-	PREVIEW :: https://streamable.com/mx4jgm
-	
     Made by coder man Bassn / hitome56
     Credits ::
         Sapphyrus - Big help for indexing paint kits as well as their images, big thanks :)
