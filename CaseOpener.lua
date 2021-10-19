@@ -741,13 +741,13 @@ local function add_item_to_inventory(case, skin)
             elseif current_case_name == "CS20 Case" then
                 rolled_int = 1
             elseif current_case_name == "Huntsman Weapon Case" then
-                rolled_int = 18
+                rolled_int = 17
             elseif current_case_name == "Falchion Case" then
                 rolled_int = 6
             elseif current_case_name == "Shadow Case" then
                 rolled_int = 13
             elseif current_case_name == "Operation Wildfire Case" then
-                rolled_int = 17
+                rolled_int = 16
             end
 
             local rolled_knife = valid_knife_skins[knives[rolled_int][1]]
