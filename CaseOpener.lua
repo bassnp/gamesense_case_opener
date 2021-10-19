@@ -3,7 +3,7 @@
 	
     Made by coder man Bassn / hitome56
     Credits ::
-        Sapphyrus - Big help for getting cases and skins dynamiclly, aswell as their images, big thanks :)
+        Sapphyrus - Big help for indexing paint kits as well as their images, big thanks :)
         Yukine    - Working file reading for images
         zPrism    - Main Test slave
         Kay       - Get Date Function
