@@ -24,7 +24,15 @@ local client_color_log, client_screen_size, client_key_state, client_set_event_c
 local renderer_line, renderer_rectangle, renderer_gradient, renderer_text = renderer.line, renderer.rectangle, renderer.gradient, renderer.text
 local entity_get_prop, entity_get_local_player, entity_get_player_name = entity.get_prop, entity.get_local_player, entity.get_player_name
 
-local case_location = "csgo_case_list_f"
+local case_location       = "csgo_case_list_f"
+local paint_kits_location = "cases_paint_kits_g"
+
+local knife_location = "knife_list_5"
+local glove_location = "glove_list_5"
+
+local points_location     = "case_points"
+local inventory_location  = "case_inventory"
+
 local case_menu_list = database_read(case_location) or nil
 local case_do_update = false
 
@@ -86,8 +94,6 @@ local menu = {
     
     cases_show    = ui_new_checkbox(mp[1], mp[2], " Always Show"),
     
-    
-    
     cases_skin_c  = ui_new_slider  (mp[1], mp[2], " Inventory Rows", 0, 5, 2, true, nil, 1, {[0] = "Hidden"}),
     
     cases_chat    = ui_new_checkbox(mp[1], mp[2], " Show Unbox in Chat"),
@@ -96,7 +102,7 @@ local menu = {
     cases_indent  = ui_new_checkbox(mp[1], mp[2], "        -  Indent Unbox Message"),
     cases_rares   = ui_new_checkbox(mp[1], mp[2], "        -  Only send message when skin is rare"),
     
-    --cases_luck    = ui_new_slider  (mp[1], mp[2], "Luck", 1, 1000, 1),
+    cases_luck    = ui_new_slider  (mp[1], mp[2], "Luck", 1, 1000, 1),
     cases_case    = ui_new_listbox (mp[1], mp[2], " Select Case", case_menu_list, 1),
 
     cases_debug   = ui_new_checkbox(mp[1], mp[2], " Debug"),
@@ -146,8 +152,7 @@ ui_set_callback(menu.cases_locked, function()
 end)
 
 --hehe
-local points_location    = "case_points"
-local inventory_location = "case_inventory"
+
 local points    = database_read(points_location) or 5000
 local inventory = database_read(inventory_location) or {}
 
@@ -324,6 +329,8 @@ local function get_paint_kit(index)
 	return ffi.cast(CPaintKit_t, paint_kit_addr)
 end
 
+local poop = {}
+
 --[[
 
 --https://counterstrike.fandom.com/wiki/Skins
@@ -346,7 +353,6 @@ end
 ]] 
 --stattrak item, for csgo the image for stattrack is acutally stattrack_advert.vtf so...
 local queued_case, current_case, queued_case_data = {}, {}, {}
-local paint_kits_location = "cases_paint_kits_e"
 local paint_kits = database_read(paint_kits_location)
 local total_kits, last_kit = 1, 0
 
@@ -396,30 +402,31 @@ local knives = {
     {"weapon_knife_widowmaker", "Talon Knife", "Talon"}
 }
 
-local knife_locaiton = "knife_list1"
-local valid_knife_skins = database_read(knife_locaiton) or {} -- mega lag on first load, have detect method for new skins / cases ... etc
+local valid_knife_skins = database_read(knife_location) or {} -- mega lag on first load, have detect method for new skins / cases ... etc
 
 if valid_knife_skins[knives[1][1]] == nil or case_do_update then
     for i = 1, #knives do
         for j, v in pairs(paint_kits) do
-            local skin_name  = v[1][1]
-            item_image = string.format("resource/flash/econ/default_generated/%s_%s_light_large.png", knives[i][1], skin_name)
-            local valid_file = validFile(item_image)
-            if valid_file then
-                local data = { 
-                    name = knives[i][2] .. " | " .. j, skin = j, image = item_image , index = v[1][2]
-                }
-                
-                local temp = valid_knife_skins[knives[i][1]]
-                if temp == nil then
-                    valid_knife_skins[knives[i][1]] = {data}
-                else			
-                    table.insert(valid_knife_skins[knives[i][1]], data )
-                end  
+            for k = 1, #v do
+                local skin_name  = v[k][1]  
+                item_image = string.format("resource/flash/econ/default_generated/%s_%s_light_large.png", knives[i][1], skin_name)
+                local valid_file = validFile(item_image)
+                if valid_file then
+                    local data = { 
+                        name = knives[i][2] .. " | " .. j, skin = j, image = item_image , index = v[1][2]
+                    }
+
+                    local temp = valid_knife_skins[knives[i][1]]
+                    if temp == nil then
+                        valid_knife_skins[knives[i][1]] = {data}
+                    else			    
+                        table.insert(valid_knife_skins[knives[i][1]], data )
+                    end  
+                end
             end
         end
     end
-    database_write(knife_locaiton, valid_knife_skins)
+    database_write(knife_location, valid_knife_skins)
 end
 
 --decalre glove tags
@@ -434,8 +441,7 @@ local gloves = {
     {"studded_hydra_gloves", "Hydra Gloves", "Hydra"}
 }
 
-local glove_locaiton = "glove_list3"
-local valid_glove_skins = database_read(glove_locaiton) or {} -- mega lag on first load, have detect method for new skins / cases ... etc
+local valid_glove_skins = database_read(glove_location) or {} -- mega lag on first load, have detect method for new skins / cases ... etc
 if valid_glove_skins[gloves[1][1]] == nil then
     for i = 1, #gloves do
         for j, v in pairs(paint_kits) do
@@ -457,7 +463,7 @@ if valid_glove_skins[gloves[1][1]] == nil then
             end
         end
     end
-    database_write(glove_locaiton, valid_glove_skins)
+    database_write(glove_location, valid_glove_skins)
 end
 
 -- Partial Credit: Sapphyrus (Built off his foundation)
@@ -731,17 +737,17 @@ local function add_item_to_inventory(case, skin)
             local rolled_int = math_random(2, 19)
             --lol
             if current_case_name == "Operation Breakout Weapon Case" then
-                rolled_int = 2
+                rolled_int = 3
             elseif current_case_name == "CS20 Case" then
                 rolled_int = 1
             elseif current_case_name == "Huntsman Weapon Case" then
-                rolled_int = 17
+                rolled_int = 18
             elseif current_case_name == "Falchion Case" then
                 rolled_int = 6
             elseif current_case_name == "Shadow Case" then
                 rolled_int = 13
             elseif current_case_name == "Operation Wildfire Case" then
-                rolled_int = 16
+                rolled_int = 17
             end
 
             local rolled_knife = valid_knife_skins[knives[rolled_int][1]]
