@@ -24,11 +24,11 @@ local client_color_log, client_screen_size, client_key_state, client_set_event_c
 local renderer_line, renderer_rectangle, renderer_gradient, renderer_text = renderer.line, renderer.rectangle, renderer.gradient, renderer.text
 local entity_get_prop, entity_get_local_player, entity_get_player_name = entity.get_prop, entity.get_local_player, entity.get_player_name
 
-local case_location       = "csgo_case_list_f"
-local paint_kits_location = "cases_paint_kits_g"
+local case_location       = "csgo_case_list_p"
+local paint_kits_location = "cases_paint_kits_p"
 
-local knife_location = "knife_list_5"
-local glove_location = "glove_list_5"
+local knife_location = "knife_list_p"
+local glove_location = "glove_list_p"
 
 local points_location     = "case_points"
 local inventory_location  = "case_inventory"
@@ -470,7 +470,7 @@ end
 local function load_queued_case()
     queued_case = {}
     queued_case_data = {}
-    local case_selected = case_menu_list[ui_get(menu.cases_case) + 1]
+    local case_selected = case_menu_list[(ui_get(menu.cases_case) or 0)  + 1]
     local case_index = database_read(case_selected)
     local case_itemid = InventoryAPI.GetFauxItemIDFromDefAndPaintIndex(case_index, 0)
 	local case_skin_count = InventoryAPI.GetLootListItemsCount(case_itemid)
@@ -587,13 +587,13 @@ local function get_r_skin(luck, item_num, cfg)
             total_points = total_points + math.random(10, 60)
         elseif f_roll > 89.10 and f_roll <= 97.1  then -- pruple
             skin_rarity = 4
-            total_points = total_points + math.random(80, 400)
+            total_points = total_points + math.random(40, 310)
         elseif f_roll > 97.10 and f_roll <= 99.74 then -- pink
             skin_rarity = 3
-            total_points = total_points + math.random(800, 3000)
+            total_points = total_points + math.random(550, 2900)
         elseif f_roll > 99.74 and f_roll <= 100   then  -- red
             skin_rarity = 2
-            total_points = total_points + math.random(2000, 7500)
+            total_points = total_points + math.random(2500, 10500)
         else
             return_skin = get_skin_details(cfg, 6) -- error
         end
@@ -603,16 +603,16 @@ local function get_r_skin(luck, item_num, cfg)
             total_points = total_points + math.random(10, 60)
         elseif r_roll > 71.96 and r_roll <= 93.90 then -- pruple
             skin_rarity = 4
-            total_points = total_points + math.random(80, 330)
+            total_points = total_points + math.random(40, 310)
         elseif r_roll > 93.90 and r_roll <= 97.90 then -- pink
             skin_rarity = 3
-            total_points = total_points + math.random(800, 3500)
+            total_points = total_points + math.random(550, 2900)
         elseif r_roll > 97.90 and r_roll <= 99.15 then  -- red
             skin_rarity = 2
-            total_points = total_points + math.random(2500, 12500)
+            total_points = total_points + math.random(2500, 10500)
         elseif r_roll > 99.15 and r_roll <= 100   then  -- gold
             skin_rarity = 1
-            total_points = total_points + math.random(8000, 100000)
+            total_points = total_points + math.random(8000, 85000)
         else
             return_skin = get_skin_details(cfg, 6) -- error
         end
@@ -847,7 +847,7 @@ local function activate_spin()
     calc_points(-case_cost)
 
     current_case = queued_case
-    current_case_name = case_menu_list[ui_get(menu.cases_case) + 1]
+    current_case_name = case_menu_list[(ui_get(menu.cases_case) or 0) + 1]
 
     bttn_rest = true
     fill_case = true
