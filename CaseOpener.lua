@@ -598,19 +598,19 @@ local function get_r_skin(luck, item_num, cfg)
             return_skin = get_skin_details(cfg, 6) -- error
         end
     else
-        if r_roll <= 71.96 then -- blue
+        if r_roll <= 75.96 then -- blue
             skin_rarity = 5
             total_points = total_points + math.random(10, 60)
-        elseif r_roll > 71.96 and r_roll <= 93.90 then -- pruple
+        elseif r_roll > 75.96 and r_roll <= 94.90 then -- pruple
             skin_rarity = 4
             total_points = total_points + math.random(40, 310)
-        elseif r_roll > 93.90 and r_roll <= 97.90 then -- pink
+        elseif r_roll > 94.90 and r_roll <= 98.90 then -- pink
             skin_rarity = 3
             total_points = total_points + math.random(550, 2900)
-        elseif r_roll > 97.90 and r_roll <= 99.15 then  -- red
+        elseif r_roll > 98.90 and r_roll <= 99.55 then  -- red
             skin_rarity = 2
             total_points = total_points + math.random(2500, 10500)
-        elseif r_roll > 99.15 and r_roll <= 100   then  -- gold
+        elseif r_roll > 99.55 and r_roll <= 100   then  -- gold
             skin_rarity = 1
             total_points = total_points + math.random(8000, 85000)
         else
