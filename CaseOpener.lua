@@ -24,11 +24,11 @@ local client_color_log, client_screen_size, client_key_state, client_set_event_c
 local renderer_line, renderer_rectangle, renderer_gradient, renderer_text = renderer.line, renderer.rectangle, renderer.gradient, renderer.text
 local entity_get_prop, entity_get_local_player, entity_get_player_name = entity.get_prop, entity.get_local_player, entity.get_player_name
 
-local case_location       = "csgo_case_list_p"
-local paint_kits_location = "cases_paint_kits_p"
+local case_location       = "csgo_case_list_z"
+local paint_kits_location = "cases_paint_kits_z"
 
-local knife_location = "knife_list_p"
-local glove_location = "glove_list_p"
+local knife_location = "knife_list_z"
+local glove_location = "glove_list_z"
 
 local points_location     = "case_points"
 local inventory_location  = "case_inventory"
@@ -102,7 +102,7 @@ local menu = {
     cases_indent  = ui_new_checkbox(mp[1], mp[2], "        -  Indent Unbox Message"),
     cases_rares   = ui_new_checkbox(mp[1], mp[2], "        -  Only send message when skin is rare"),
     
-    --cases_luck    = ui_new_slider  (mp[1], mp[2], "Luck", 1, 1000, 1),
+    --cases_luck    = ui_new_slider  (mp[1], mp[2], "Luck", 1, 1000, 1), -- sshhhhhhhhhhhhhhh, very secret ;)
     cases_case    = ui_new_listbox (mp[1], mp[2], " Select Case", case_menu_list, 1),
 
     cases_debug   = ui_new_checkbox(mp[1], mp[2], " Debug"),
@@ -389,7 +389,7 @@ local knives = {
     {"weapon_knife_falchion", "Falchion Knife", "Falchion"},
     {"weapon_knife_flip", "Flip Knife", "Flip"},
     {"weapon_knife_gut", "Gut Knife", "Gut"},
-    {"weapon_knife_gypsy", "Navaja Knife", "Navaja"},
+    {"weapon_knife_gypsy_jackknife", "Navaja Knife", "Navaja"},
     {"weapon_knife_karambit", "Karambit", "Karambit"},
     {"weapon_knife_m9_bayonet", "M9 Bayonet", "M9 Bayonet"},
     {"weapon_knife_outdoor", "Nomad Knife", "Nomad"},
