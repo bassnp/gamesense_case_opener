@@ -19,16 +19,16 @@ local get_absoluteframetime, globals_curtime = globals.absoluteframetime, global
 local database_read, database_write = database.read, database.write
 local math_sin, math_pi, math_floor, math_random, math_min, math_max, math_abs = math.sin, math.pi, math.floor, client.random_int, math.min, math.max, math.abs
 local ui_get, ui_set, ui_new_checkbox, ui_new_slider, ui_new_combobox, ui_new_listbox, ui_new_label, ui_set_visible, ui_reference, ui_new_hotkey = ui.get, ui.set, ui.new_checkbox, ui.new_slider, ui.new_combobox, ui.new_listbox, ui.new_label, ui.set_visible, ui.reference, ui.new_hotkey
-local ui_menu_position, ui_new_multiselect, ui_menu_size, ui_is_menu_open, ui_mouse_position, ui_set_callback = ui.menu_position, ui.new_multiselect, ui.menu_size, ui.is_menu_open, ui.mouse_position, ui.set_callback
-local client_color_log, client_screen_size, client_key_state, client_set_event_callback, client_userid_to_entindex, client_exec, client_delay_call = client.color_log, client.screen_size, client.key_state, client.set_event_callback, client.userid_to_entindex, client.exec, client.delay_call
+local ui_menu_position, ui_new_multiselect, ui_menu_size, ui_is_menu_open, ui_mouse_position, ui_set_callback, ui_new_button = ui.menu_position, ui.new_multiselect, ui.menu_size, ui.is_menu_open, ui.mouse_position, ui.set_callback, ui.new_button
+local client_color_log, client_screen_size, client_key_state, client_set_event_callback, client_userid_to_entindex, client_exec, client_delay_call, client_reload_active_scripts = client.color_log, client.screen_size, client.key_state, client.set_event_callback, client.userid_to_entindex, client.exec, client.delay_call, client.reload_active_scripts
 local renderer_line, renderer_rectangle, renderer_gradient, renderer_text = renderer.line, renderer.rectangle, renderer.gradient, renderer.text
 local entity_get_prop, entity_get_local_player, entity_get_player_name = entity.get_prop, entity.get_local_player, entity.get_player_name
 
-local case_location       = "csgo_case_list_z"
-local paint_kits_location = "cases_paint_kits_z"
+local case_location       = "csgo_case_list_001"
+local paint_kits_location = "cases_paint_kits_001"
 
-local knife_location = "knife_list_z"
-local glove_location = "glove_list_z"
+local knife_location = "knife_list_001"
+local glove_location = "glove_list_001"
 
 local points_location     = "case_points"
 local inventory_location  = "case_inventory"
@@ -105,6 +105,14 @@ local menu = {
     --cases_luck    = ui_new_slider  (mp[1], mp[2], "Luck", 1, 1000, 1), -- sshhhhhhhhhhhhhhh, very secret ;)
     cases_case    = ui_new_listbox (mp[1], mp[2], " Select Case", case_menu_list, 1),
 
+    cases_update  = ui_new_button  (mp[1], mp[2], " Force Update Cases (Lag Spike)", function()
+        database_write(case_location, nil)
+        database_write(paint_kits_location, nil)
+        database_write(knife_location, nil)
+        database_write(glove_location, nil)
+        client_reload_active_scripts()
+    end),
+
     cases_debug   = ui_new_checkbox(mp[1], mp[2], " Debug"),
     cases_spacer  = ui_new_label   (mp[1], mp[2], "\nCases Spacer")    
 }
@@ -116,7 +124,7 @@ local function setTableVisibility(table, state) -- thx to whoever made this
 end
 
 client_set_event_callback("paint_ui", function()  --menu item handler
-    setTableVisibility({menu.cases_show, menu.cases_locked, menu.cases_sell, menu.cases_audio, menu.cases_volume, menu.cases_spacer, menu.cases_case, menu.cases_hotkey, menu.cases_stats, menu.cases_speed, menu.cases_chat, menu.cases_skin_c}, ui_get(menu.cases_enable))
+    setTableVisibility({menu.cases_show, menu.cases_locked, menu.cases_sell, menu.cases_audio, menu.cases_volume, menu.cases_spacer, menu.cases_case, menu.cases_hotkey, menu.cases_stats, menu.cases_speed, menu.cases_chat, menu.cases_skin_c, menu.cases_update, menu.cases_debug}, ui_get(menu.cases_enable))
     setTableVisibility({menu.cases_pos, menu.cases_i_pos}, ui_get(menu.cases_locked) and ui_get(menu.cases_enable)) 
     ui_set_visible(menu.cases_volume,  ui_get(menu.cases_audio) and ui_get(menu.cases_enable))
     ui_set_visible(menu.cases_speed_v, ui_get(menu.cases_speed) and ui_get(menu.cases_enable))
@@ -493,8 +501,8 @@ local function load_queued_case()
             else
                 item_name = InventoryAPI.GetItemName(itemid)
                 item_rarity = 8 - InventoryAPI.GetItemRarity(itemid)
-
                 local tag_name = InventoryAPI.GetItemName(itemid):match(" | (.*)") -- game skin name
+                --client_color_log(255, 255, 255, "\nIID : " .. tostring(itemid) .. "\nSTACK : " .. tostring(while_loop_is_scary) .. "\nIndex : " .. i .. " of " .. case_skin_count .. "\nCase : " .. tostring(case_selected) .. " - ".. tostring(case_itemid) .. "\nTag : " .. InventoryAPI.GetItemName(itemid) .. " - ".. tostring(tag_name))             
                 local skin_name = paint_kits[tag_name][while_loop_is_scary][1] -- getting skin file name using the game skin name as a key
                 skin_index = paint_kits[tag_name][while_loop_is_scary][2] -- skin indexed
                 item_image = string.format("resource/flash/econ/default_generated/%s_%s_light_large.png", InventoryAPI.GetItemDefinitionName(itemid), skin_name)
