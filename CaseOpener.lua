@@ -1,6 +1,6 @@
  --[[
     Made by coder man Bassn / hitome56
-    Credits ::
+    Main Credits ::
         Sapphyrus - Big help for indexing paint kits as well as their images, big thanks :)
         Yukine    - Working file reading for images
         zPrism    - Main Test slave
@@ -24,14 +24,14 @@ local client_color_log, client_screen_size, client_key_state, client_set_event_c
 local renderer_line, renderer_rectangle, renderer_gradient, renderer_text = renderer.line, renderer.rectangle, renderer.gradient, renderer.text
 local entity_get_prop, entity_get_local_player, entity_get_player_name = entity.get_prop, entity.get_local_player, entity.get_player_name
 
-local case_location       = "csgo_case_list_001"
-local paint_kits_location = "cases_paint_kits_001"
+local case_location       = "csgo_case_list_003"
+local paint_kits_location = "cases_paint_kits_003"
 
-local knife_location = "knife_list_001"
-local glove_location = "glove_list_001"
+local knife_location = "knife_list_003"
+local glove_location = "glove_list_003"
 
 local points_location     = "case_points"
-local inventory_location  = "case_inventory"
+local inventory_location  = "case_inventoryX"
 
 local case_menu_list = database_read(case_location) or nil
 local case_do_update = false
@@ -102,7 +102,7 @@ local menu = {
     cases_indent  = ui_new_checkbox(mp[1], mp[2], "        -  Indent Unbox Message"),
     cases_rares   = ui_new_checkbox(mp[1], mp[2], "        -  Only send message when skin is rare"),
     
-    --cases_luck    = ui_new_slider  (mp[1], mp[2], "Luck", 1, 1000, 1), -- sshhhhhhhhhhhhhhh, very secret ;)
+    cases_luck    = ui_new_slider  (mp[1], mp[2], "Luck", 1, 1000, 1), -- sshhhhhhhhhhhhhhh, very secret ;)
     cases_case    = ui_new_listbox (mp[1], mp[2], " Select Case", case_menu_list, 1),
 
     cases_update  = ui_new_button  (mp[1], mp[2], " Force Update Cases (Lag Spike)", function()
@@ -176,7 +176,6 @@ local this_case = {}
 local skin_opened = {}
 local skin_hover = {}
 local prev_skin_hover = {}
-local apply_queue = {}
 
 local spin_x_offset, holder_h, scaled_w_ref = 0, 0, 0
 
@@ -337,28 +336,8 @@ local function get_paint_kit(index)
 	return ffi.cast(CPaintKit_t, paint_kit_addr)
 end
 
-local poop = {}
+local debug_list = {}
 
---[[
-
---https://counterstrike.fandom.com/wiki/Skins
-
-    X   Color         Grade                        RGB
-    -----------------------------------------------------------------------------
-    5 - blue        - Mil-spec grade            - 17,85,221
-    4 - purple      - Restricted                - 136,71,255
-    3 - pink        - Classified                - 211,44,230
-    2 - red         - Covert                    - 235,75,75
-    1 - gold        - ★ Melee Weapons          - 202,171,5
-
-    sounds :: 
-        ui/csgo_ui_crate_display
-        ui/csgo_ui_crate_item_scroll
-        ui/csgo_ui_crate_open
-
-    images :: 
-        resources/flash/econ/default_generated/... .png
-]] 
 --stattrak item, for csgo the image for stattrack is acutally stattrack_advert.vtf so...
 local queued_case, current_case, queued_case_data = {}, {}, {}
 local paint_kits = database_read(paint_kits_location)
@@ -377,6 +356,10 @@ if paint_kits == nil or case_do_update then
             local tag = ffi.string(paint_kit.tag.buffer, paint_kit.tag.length-1)
             local temp = paint_kits[localize(tag)]
 
+            if name == "sp_nightstripe" then
+                table_insert(debug_list, {name, i})
+            end
+
             if temp == nil then
                 paint_kits[localize(tag)] = {{name, i}}
             else			
@@ -389,25 +372,25 @@ if paint_kits == nil or case_do_update then
 end
 
 local knives = {
-    {"weapon_knife_css", "Classic Knife", "Classic knife"},
-    {"weapon_bayonet", "Bayonet", "Bayonet"},
-    {"weapon_knife_butterfly","Butterfly Knife", "Butterfly"},
-    {"weapon_knife_canis", "Survival Knife", "Survival"},
-    {"weapon_knife_cord", "Paracord Knife", "Paracord"},
-    {"weapon_knife_falchion", "Falchion Knife", "Falchion"},
-    {"weapon_knife_flip", "Flip Knife", "Flip"},
-    {"weapon_knife_gut", "Gut Knife", "Gut"},
-    {"weapon_knife_gypsy_jackknife", "Navaja Knife", "Navaja"},
-    {"weapon_knife_karambit", "Karambit", "Karambit"},
-    {"weapon_knife_m9_bayonet", "M9 Bayonet", "M9 Bayonet"},
-    {"weapon_knife_outdoor", "Nomad Knife", "Nomad"},
-    {"weapon_knife_push", "Shadow Daggers", "Shadow dagger"},
-    {"weapon_knife_skeleton", "Skeleton Knife", "Skeleton"},
-    {"weapon_knife_stiletto", "Stiletto Knife", "Stiletto"},
-    {"weapon_knife_survival_bowie", "Bowie Knife", "Survival bowie"},
-    {"weapon_knife_tactical", "Huntsman Knife", "Tactical"},
-    {"weapon_knife_ursus", "Ursus Knife", "Ursus"},
-    {"weapon_knife_widowmaker", "Talon Knife", "Talon"}
+    {"weapon_knife_css", "Classic Knife", "Classic knife", 503},
+    {"weapon_bayonet", "Bayonet", "Bayonet", 500},
+    {"weapon_knife_butterfly","Butterfly Knife", "Butterfly", 515},
+    {"weapon_knife_canis", "Survival Knife", "Survival", 518},
+    {"weapon_knife_cord", "Paracord Knife", "Paracord", 517},
+    {"weapon_knife_falchion", "Falchion Knife", "Falchion", 512},
+    {"weapon_knife_flip", "Flip Knife", "Flip", 505},
+    {"weapon_knife_gut", "Gut Knife", "Gut", 506},
+    {"weapon_knife_gypsy_jackknife", "Navaja Knife", "Navaja", 520},
+    {"weapon_knife_karambit", "Karambit", "Karambit", 507},
+    {"weapon_knife_m9_bayonet", "M9 Bayonet", "M9 Bayonet", 508},
+    {"weapon_knife_outdoor", "Nomad Knife", "Nomad", 521},
+    {"weapon_knife_push", "Shadow Daggers", "Shadow dagger", 516},
+    {"weapon_knife_skeleton", "Skeleton Knife", "Skeleton", 525},
+    {"weapon_knife_stiletto", "Stiletto Knife", "Stiletto", 522},
+    {"weapon_knife_survival_bowie", "Bowie Knife", "Survival bowie", 514},
+    {"weapon_knife_tactical", "Huntsman Knife", "Tactical", 509},
+    {"weapon_knife_ursus", "Ursus Knife", "Ursus", 519},
+    {"weapon_knife_widowmaker", "Talon Knife", "Talon", 523}
 }
 
 local valid_knife_skins = database_read(knife_location) or {} -- mega lag on first load, have detect method for new skins / cases ... etc
@@ -415,15 +398,19 @@ local valid_knife_skins = database_read(knife_location) or {} -- mega lag on fir
 if valid_knife_skins[knives[1][1]] == nil or case_do_update then
     for i = 1, #knives do
         for j, v in pairs(paint_kits) do
-            for k = 1, #v do
-                local skin_name  = v[k][1]  
-                item_image = string.format("resource/flash/econ/default_generated/%s_%s_light_large.png", knives[i][1], skin_name)
+            for k, n in ipairs(v) do
+                local skin_name  = n[1]  
+                local item_image = string.format("resource/flash/econ/default_generated/%s_%s_light_large.png", knives[i][1], skin_name)
                 local valid_file = validFile(item_image)
                 if valid_file then
                     local data = { 
-                        name = knives[i][2] .. " | " .. j, skin = j, image = item_image , index = v[1][2]
+                        name = knives[i][2] .. " | " .. j, skin = j, image = item_image , index = n[2]
                     }
 
+                    if j == "sp_mesh_tan" then
+                        table_insert(debug_list, {knives[i][1], data.index})
+                    end
+                    
                     local temp = valid_knife_skins[knives[i][1]]
                     if temp == nil then
                         valid_knife_skins[knives[i][1]] = {data}
@@ -454,8 +441,7 @@ if valid_glove_skins[gloves[1][1]] == nil then
     for i = 1, #gloves do
         for j, v in pairs(paint_kits) do
             local skin_name = v[1][1]
-
-            item_image = string.format("resource/flash/econ/default_generated/%s_%s_light_large.png", gloves[i][1], skin_name)
+            local item_image = string.format("resource/flash/econ/default_generated/%s_%s_light_large.png", gloves[i][1], skin_name)
             local valid_file = validFile(item_image)
             if valid_file then
                 local data = { 
@@ -489,7 +475,7 @@ local function load_queued_case()
     for i = 1, case_skin_count do
         local itemid = InventoryAPI.GetLootListItemIdByIndex(case_itemid, i-1)
         local item_image, item_name, item_rarity
-        local skin_index = -1
+        local skin_index, weapon_idx = -1, -1
         local fixed_index = case_skin_count - (i - 1)
         local skin_image_file, valid_file = nil, false
         local while_loop_is_scary = 1
@@ -506,6 +492,7 @@ local function load_queued_case()
                 local skin_name = paint_kits[tag_name][while_loop_is_scary][1] -- getting skin file name using the game skin name as a key
                 skin_index = paint_kits[tag_name][while_loop_is_scary][2] -- skin indexed
                 item_image = string.format("resource/flash/econ/default_generated/%s_%s_light_large.png", InventoryAPI.GetItemDefinitionName(itemid), skin_name)
+                weapon_idx = InventoryAPI.GetItemDefinitionIndex(itemid)
             end
 
             
@@ -521,17 +508,18 @@ local function load_queued_case()
             while_loop_is_scary = while_loop_is_scary + 1
         end
         skin_image_file = readFile(item_image)
-        
+
         local final_image = images.load(skin_image_file.get())
-        local _weapon    = string.find(item_name, "|") or 2
-        local _skin_name = string.find(item_name, "|") or #item_name
+        local _weapon     = string.find(item_name, "|") or 2
+        local _skin_name  = string.find(item_name, "|") or #item_name
 
         queued_case[fixed_index] = {
             image = final_image, 
-            full_name = item_name,
-            skin_name = string.sub(item_name, _skin_name + 2, #item_name),
-            weapon    = string.sub(item_name, 1, _weapon - 2) or "Knife",
-            image_dir = item_image,
+            full_name  = item_name,
+            skin_name  = string.sub(item_name, _skin_name + 2, #item_name),
+            weapon     = string.sub(item_name, 1, _weapon - 2) or "Knife",
+            weapon_idx = weapon_idx,
+            image_dir  = item_image,
             index = skin_index
         }
         queued_case_data[item_rarity] = (queued_case_data[item_rarity] or 0) + 1
@@ -575,6 +563,7 @@ local rarity_colors = {
     {r = 017, g = 085, b = 221, rarity = "Mil-spec grade"},
     {r = 255, g = 255, b = 255, rarity = "Error"},  
 }
+
 local function get_skin_details(cfg, rarity)
     local r_info = rarity_colors[rarity]
     local num_pos = get_start_finish(cfg, rarity)
@@ -585,6 +574,7 @@ end
 local function get_r_skin(luck, item_num, cfg)  
     local total_points = 0
     local return_skin = {}
+    
     local f_roll = fix_float(100 - (math_random(1, 10000) / 100)) -- case filler items roll
     local r_roll = fix_float(100 - (math_random(1, 10000 / luck) / 100)) -- case main item roll
     local skin_rarity = 0
@@ -592,37 +582,33 @@ local function get_r_skin(luck, item_num, cfg)
     if item_num ~= 35 then
         if f_roll <= 89.10 then -- blue
             skin_rarity = 5
-            total_points = total_points + math.random(10, 60)
+            total_points = total_points + math_random(10, 60)
         elseif f_roll > 89.10 and f_roll <= 97.1  then -- pruple
             skin_rarity = 4
-            total_points = total_points + math.random(40, 310)
+            total_points = total_points + math_random(40, 310)
         elseif f_roll > 97.10 and f_roll <= 99.74 then -- pink
             skin_rarity = 3
-            total_points = total_points + math.random(550, 2900)
+            total_points = total_points + math_random(550, 2900)
         elseif f_roll > 99.74 and f_roll <= 100   then  -- red
             skin_rarity = 2
-            total_points = total_points + math.random(2500, 10500)
-        else
-            return_skin = get_skin_details(cfg, 6) -- error
+            total_points = total_points + math_random(2500, 10500)
         end
     else
         if r_roll <= 75.96 then -- blue
             skin_rarity = 5
-            total_points = total_points + math.random(10, 60)
+            total_points = total_points + math_random(10, 60)
         elseif r_roll > 75.96 and r_roll <= 94.90 then -- pruple
             skin_rarity = 4
-            total_points = total_points + math.random(40, 310)
+            total_points = total_points + math_random(40, 310)
         elseif r_roll > 94.90 and r_roll <= 98.90 then -- pink
             skin_rarity = 3
-            total_points = total_points + math.random(550, 2900)
+            total_points = total_points + math_random(550, 2900)
         elseif r_roll > 98.90 and r_roll <= 99.55 then  -- red
             skin_rarity = 2
-            total_points = total_points + math.random(2500, 10500)
+            total_points = total_points + math_random(2500, 10500)
         elseif r_roll > 99.55 and r_roll <= 100   then  -- gold
             skin_rarity = 1
-            total_points = total_points + math.random(8000, 85000)
-        else
-            return_skin = get_skin_details(cfg, 6) -- error
+            total_points = total_points + math_random(8000, 85000)
         end
     end
 
@@ -630,29 +616,28 @@ local function get_r_skin(luck, item_num, cfg)
 
     local w_roll = fix_float(100 - (math_random(0, 10000) / 100))
     if w_roll >= 0 and w_roll <= 9.93 then
-        return_skin.wear  = "Battle-Scarred"
+        return_skin.wear     = "Battle-Scarred"
+        return_skin.wear_int = math_random(44, 100)
         total_points = total_points * 0.65
     elseif w_roll > 9.93 and w_roll <= 17.85  then
         return_skin.wear  = "Well-Worn"
+        return_skin.wear_int = math_random(38, 45)
         total_points = total_points * 0.8
     elseif w_roll > 17.85  and w_roll <= 61.03 then
         return_skin.wear  = "Field Tested"
+        return_skin.wear_int = math_random(15, 39)
         total_points = total_points * 1
     elseif w_roll > 61.03 and w_roll <= 85.71 then
         return_skin.wear  = "Minimal Wear"
+        return_skin.wear_int = math_random(7, 16)
         total_points = total_points * 1.4
     elseif w_roll > 85.71 and w_roll <= 100 then
+        return_skin.wear_int = math_random(0, 8)
         return_skin.wear  = "Factory New"
         total_points = total_points * 2
-    else
-        return_skin.wear = "Error"
     end
 
-    return_skin.rarity_int  = skin_rarity
-    return_skin.rarity_roll = r_roll
-    return_skin.wear_roll   = w_roll
-
-    return_skin.stattrack   = math_random(1, 10) == 1 and true or false
+    return_skin.stattrack = true and current_case[1].full_name ~= "★ Gloves ★"
     if return_skin.stattrack then
         total_points = total_points * 2.3
     end
@@ -660,42 +645,70 @@ local function get_r_skin(luck, item_num, cfg)
     return_skin.percentage  = tostring(fix_float((100 - r_roll) / (return_skin.stattrack and 10 or 1))) .. "%"
     return_skin.points = math_floor(total_points)
     
+    local s_roll = math_random(0, 1000) -- case filler items roll
+    return_skin.seed = s_roll
     return return_skin
 end
 
-local knife_enable, knife_combo = ui_reference("SKINS", "Knife options", "Override knife")
-local glove_enable, glove_combo, glove_listbox = ui_reference("SKINS", "Glove options", "Override gloves")
---apply_queue
-local function add_to_apply_queue(skin)
-    --check for is weapon already has skin queued
-    for i=1, #apply_queue do
-        if apply_queue[i] ~= nil then
-            local queue_skin = apply_queue[i]
-            if queue_skin.weapon == skin.weapon then
-                table_remove(apply_queue, i)
-                if ui_get(menu.cases_debug) then
-                    log("Removed skin queue " .. i .. " : " .. queue_skin.skin_name, 1)
-                end
-            end
-        end
-    end
+local knife_enable, knife_combo = ui_reference("SKINS", "Model options", "Knife changer")
+local glove_enable, glove_combo, glove_combo2 = ui_reference("SKINS", "Model options", "Glove changer")
 
+local skins_listbox = ui_reference("SKINS", "Weapon Skin", "Skin")
+local idx_reference = ui_reference("SKINS", "Weapon skin", "Weapon")
+ui_set_visible(idx_reference, true)
+
+local knife_apply = nil
+local function idx_apply(skin)
+    local c_idx = ui_get(idx_reference)
     if skin.type == "knife" then
         ui_set(knife_enable, true)
         ui_set(knife_combo, skin.eso_name)
-    end
-
-    if skin.type == "glove" then
+        knife_apply = skin
+    elseif skin.type == "glove" then
         ui_set(glove_enable, true)
         ui_set(glove_combo, skin.eso_name)
-        ui_set(glove_listbox, skin.index)
+        ui_set(glove_combo2, skin.skin_name)
     else
-        table_insert(apply_queue, skin)
-        if ui_get(menu.cases_debug) then
-            log("Added skin to queue : " .. skin.skin_name, 3)
-        end
-    end
+        ui_set(idx_reference, skin.weapon_idx)
+
+        local skins_enable   = ui_reference("SKINS", "Weapon Skin", "Enabled")
+        local skins_stattrak = ui_reference("SKINS", "Weapon Skin", "StatTrak")
+        local skins_quality  = ui_reference("SKINS", "Weapon Skin", "Quality")
+        local skins_seed     = ui_reference("SKINS", "Weapon Skin", "Seed")
+
+        ui_set(skins_enable, true)
+        ui_set(skins_listbox, skin.index)
+        ui_set(skins_stattrak, skin.stattrack)
+        ui_set(skins_quality, 100 - skin.wear_int)
+        ui_set(skins_seed, skin.seed)
+        ui_set(idx_reference, c_idx)
+    end 
 end
+
+local t_knife = {}
+client_set_event_callback("net_update_start", function() -- skin applying handling
+    local local_player = entity.get_local_player()
+    if not entity.is_alive(local_player) or knife_apply == nil then return end
+    
+	local weapon_ent = entity.get_player_weapon(local_player)
+    local current_weapon = csgo_weapons(weapon_ent) -- current_weapon.name
+    if current_weapon.type == "knife" then
+        local skins_enable   = ui_reference("SKINS", "Weapon Skin", "Enabled")
+        local skins_stattrak = ui_reference("SKINS", "Weapon Skin", "StatTrak")
+        local skins_quality  = ui_reference("SKINS", "Weapon Skin", "Quality")
+        local skins_seed     = ui_reference("SKINS", "Weapon Skin", "Seed")
+
+        t_knife = knife_apply
+        client.delay_call(0.15, function()
+            ui_set(skins_enable, true)
+            ui_set(skins_listbox, t_knife.index)
+            ui_set(skins_stattrak, t_knife.stattrack)
+            ui_set(skins_quality, 100 - t_knife.wear_int)
+            ui_set(skins_seed, t_knife.seed)
+        end)
+        knife_apply = nil
+    end
+end)
 
 local function add_item_to_inventory(case, skin)
     if skin.rarity ~= "Exceedingly Rare" then
@@ -703,11 +716,13 @@ local function add_item_to_inventory(case, skin)
             num = skin.num,
             name = case[skin.num].full_name,
             weapon = case[skin.num].weapon,
+            weapon_idx = case[skin.num].weapon_idx,
             skin_name  = case[skin.num].skin_name,
             wear = skin.wear,
-            wear_roll = skin.wear_roll,
+            wear_int = skin.wear_int,
             rarity = skin.rarity,
             points = skin.points,
+            seed = skin.seed, 
             percentage = skin.percentage,  
             stattrack = skin.stattrack,
             image_dir = case[skin.num].image_dir,
@@ -726,10 +741,9 @@ local function add_item_to_inventory(case, skin)
                 num = skin.num,
                 name = glove_skin.name,
                 weapon = gloves[rolled_int][2],
-                eso_name = gloves[rolled_int][3],
+                eso_name = gloves[rolled_int][2],
                 skin_name = glove_skin.skin,
                 wear = skin.wear,
-                wear_roll = skin.wear_roll,
                 rarity = skin.rarity,
                 points = skin.points,
                 percentage = skin.percentage,  
@@ -765,12 +779,14 @@ local function add_item_to_inventory(case, skin)
                 num = skin.num,
                 name = knife_skin.name,
                 weapon = knives[rolled_int][2],
+                weapon_idx = knives[rolled_int][4],
                 eso_name = knives[rolled_int][3],
                 skin_name = knife_skin.skin,
                 wear = skin.wear,
-                wear_roll = skin.wear_roll,
+                wear_int = skin.wear_int,
                 rarity = skin.rarity,
                 points = skin.points,
+                seed = skin.seed, 
                 percentage = skin.percentage,  
                 stattrack = skin.stattrack,
                 image_dir = knife_skin.image,
@@ -1171,55 +1187,6 @@ client_set_event_callback("paint_ui", function() -- main
     end
 end)
 
-local skins_listbox  = ui_reference("SKINS", "Weapon Skin", "Skin")
-
-local past_weapon       = -1
-local past_queue_length = #apply_queue
-client_set_event_callback("net_update_start", function() -- skin applying handling
-    local local_player = entity.get_local_player()
-	local weapon_ent = entity.get_player_weapon(local_player)
-
-    if weapon_ent ~= past_weapon or #apply_queue ~= past_queue_length then
-        local current_weapon = csgo_weapons(weapon_ent) -- current_weapon.name
-        if current_weapon ~= nil then
-            current_weapon_name = current_weapon.name
-            --check the queue
-            for i=1, #apply_queue do
-                local queued_skin = apply_queue[i]
-                if queued_skin ~= nil then
-                    local queued_weapon = queued_skin.weapon
-                    if queued_weapon == current_weapon_name or current_weapon_name == "Knife" then
-                        -- applying skin
-                        local apply_delay = (weapon_ent ~= past_weapon and 0.5 or 0.1)
-                        client_delay_call(apply_delay, function()
-                            local skins_enable   = ui_reference("SKINS", "Weapon Skin", "Enabled")
-                            local skins_stattrak = ui_reference("SKINS", "Weapon Skin", "StatTrak")
-                            --local skins_quality  = ui_reference("SKINS", "Weapon Skin", "Quality")
-                            local skins_filter   = ui_reference("SKINS", "Weapon Skin", "Filter by weapon")
-
-                            ui_set(skins_enable, true)
-                            ui_set(skins_stattrak, queued_skin.stattrack)
-                            --ui_set(skins_quality, math.floor(queued_skin.wear_roll))
-                            ui_set(skins_filter, true)
-                            client_delay_call(0.5, function()
-                                ui_set(skins_listbox, queued_skin.index)
-                                table_remove(apply_queue, i)
-                                if ui_get(menu.cases_debug) then
-                                    log("Applying Skin : " .. queued_skin.skin_name, 2)
-                                end
-                            end)
-                        end)
-
-                    end
-                end
-            end
-        end
-        --update vars
-        past_weapon = weapon_ent
-        past_queue_length = #apply_queue
-    end
-end)
-
 local time_diff_old_1 = 0
 local item_inv_alpha, inv_hover_past, sold_item = 0, nil, nil
 
@@ -1278,7 +1245,7 @@ client_set_event_callback("paint_ui", function() -- inventory handling
                                     rick.t = globals_curtime()
                                     points_added_alpha = 1
                                 elseif click_x > o_x and click_x < o_x + o_w and click_y > o_y + (o_h / 2) and click_y < o_y + o_h and valid_skin then
-                                    add_to_apply_queue(rick.skin)
+                                    idx_apply(rick.skin)
                                 end
                                 rick.x, rick.y, rick.skin, rick.i = nil, nil, nil, nil
                             end
@@ -1615,9 +1582,9 @@ client_set_event_callback('player_death', function(e) -- points
 
     if ping ~= 0 then -- anti bot protection
         if e.headshot then
-            calc_points(250)
+            calc_points(125)
         else
-            calc_points(150)
+            calc_points(75)
         end
         database_write(points_location, points)
     end
