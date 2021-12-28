@@ -102,7 +102,7 @@ local menu = {
     cases_indent  = ui_new_checkbox(mp[1], mp[2], "        -  Indent Unbox Message"),
     cases_rares   = ui_new_checkbox(mp[1], mp[2], "        -  Only send message when skin is rare"),
     
-    cases_luck    = ui_new_slider  (mp[1], mp[2], "Luck", 1, 1000, 1), -- sshhhhhhhhhhhhhhh, very secret ;)
+    --cases_luck    = ui_new_slider  (mp[1], mp[2], "Luck", 1, 1000, 1), -- sshhhhhhhhhhhhhhh, very secret ;)
     cases_case    = ui_new_listbox (mp[1], mp[2], " Select Case", case_menu_list, 1),
 
     cases_update  = ui_new_button  (mp[1], mp[2], " Force Update Cases (Lag Spike)", function()
