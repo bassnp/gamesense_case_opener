@@ -637,7 +637,7 @@ local function get_r_skin(luck, item_num, cfg)
         total_points = total_points * 2
     end
 
-    return_skin.stattrack = true and current_case[1].full_name ~= "★ Gloves ★"
+    return_skin.stattrack = math_random(1, 10) == 1 and current_case[1].full_name ~= "★ Gloves ★"
     if return_skin.stattrack then
         total_points = total_points * 2.3
     end
