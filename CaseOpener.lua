@@ -30,7 +30,7 @@ local paint_kits_location = "cases_paint_kits_003"
 local knife_location = "knife_list_003"
 local glove_location = "glove_list_003"
 
-local points_location     = "case_points"
+local points_location     = "case_pointsx"
 local inventory_location  = "case_inventoryX"
 
 local case_menu_list = database_read(case_location) or nil
@@ -655,7 +655,7 @@ local glove_enable, glove_combo, glove_combo2 = ui_reference("SKINS", "Model opt
 
 local skins_listbox = ui_reference("SKINS", "Weapon Skin", "Skin")
 local idx_reference = ui_reference("SKINS", "Weapon skin", "Weapon")
-ui_set_visible(idx_reference, true)
+ui_set_visible(idx_reference, false)
 
 local knife_apply = nil
 local function idx_apply(skin)
