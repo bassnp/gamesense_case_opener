@@ -75,6 +75,7 @@ end
 index_all_cases()
 
 local mp = {"LUA", "B"}
+local manual_sort = false
 local menu = {
     cases_enable  = ui_new_checkbox(mp[1], mp[2], "⟡ Bassn's Case Opener ⟡"),
     cases_hotkey  = ui_new_hotkey  (mp[1], mp[2], " Open Case Hotkey"),
@@ -96,6 +97,13 @@ local menu = {
     
     cases_skin_c  = ui_new_slider  (mp[1], mp[2], " Inventory Rows", 0, 5, 2, true, nil, 1, {[0] = "Hidden"}),
     
+    cases_sort_t  = ui_new_combobox(mp[1], mp[2], " Inventory Sort mode", {"Price", "Rarity", "Chance"}, 1),
+    cases_do_sort = ui_new_button  (mp[1], mp[2], " Sort Inventory", function()
+        manual_sort = true
+    end),
+    cases_ascend  = ui_new_checkbox(mp[1], mp[2], " Sort Ascendingly (Inverse Sort)"),
+    cases_auto    = ui_new_checkbox(mp[1], mp[2], " Auto Sort Inventory"),
+
     cases_chat    = ui_new_checkbox(mp[1], mp[2], " Show Unbox in Chat"),
     cases_chat_v  = ui_new_combobox(mp[1], mp[2], "\nChat Type", {"All Chat", "Realistic Radio", "Fake Radio", "Team Chat"}, 1),
     cases_chance  = ui_new_checkbox(mp[1], mp[2], "        -  Include skin details"),
@@ -124,8 +132,9 @@ local function setTableVisibility(table, state) -- thx to whoever made this
 end
 
 client_set_event_callback("paint_ui", function()  --menu item handler
-    setTableVisibility({menu.cases_show, menu.cases_locked, menu.cases_sell, menu.cases_audio, menu.cases_volume, menu.cases_spacer, menu.cases_case, menu.cases_hotkey, menu.cases_stats, menu.cases_speed, menu.cases_chat, menu.cases_skin_c, menu.cases_update, menu.cases_debug}, ui_get(menu.cases_enable))
+    setTableVisibility({menu.cases_sort_t, menu.cases_ascend, menu.cases_auto, menu.cases_show, menu.cases_locked, menu.cases_sell, menu.cases_audio, menu.cases_volume, menu.cases_spacer, menu.cases_case, menu.cases_hotkey, menu.cases_stats, menu.cases_speed, menu.cases_chat, menu.cases_skin_c, menu.cases_update, menu.cases_debug}, ui_get(menu.cases_enable))
     setTableVisibility({menu.cases_pos, menu.cases_i_pos}, ui_get(menu.cases_locked) and ui_get(menu.cases_enable)) 
+    ui_set_visible(menu.cases_do_sort, not ui_get(menu.cases_auto) and ui_get(menu.cases_enable))
     ui_set_visible(menu.cases_volume,  ui_get(menu.cases_audio) and ui_get(menu.cases_enable))
     ui_set_visible(menu.cases_speed_v, ui_get(menu.cases_speed) and ui_get(menu.cases_enable))
     ui_set_visible(menu.cases_sell_v,  ui_get(menu.cases_sell)  and ui_get(menu.cases_enable))
@@ -177,6 +186,14 @@ local skin_opened = {}
 local skin_hover = {}
 local prev_skin_hover = {}
 
+local rarity_int = {
+    ["Exceedingly Rare"] = 5,
+    ["Covert"] = 4,
+    ["Classified"] = 3,
+    ["Restricted"] = 2,
+    ["Mil-spec grade"] = 1,
+}
+
 local spin_x_offset, holder_h, scaled_w_ref = 0, 0, 0
 
 --main funcs
@@ -205,6 +222,67 @@ local function contains(item, val)
         end
     end
     return false
+end
+
+local function sort(in_table, ascend, method) -- super fucking scuffed, i just want to get this over with
+    local out_table = in_table
+    local n = #out_table
+    for i = 2, n do 
+        local key = out_table[i]
+        local j = i - 1
+
+        if method == "rarity" then
+            if ascend then
+                while (j > 0) and rarity_int[out_table[j][method]] > rarity_int[key[method]] do
+                    out_table[j + 1] = out_table[j]
+                    j = j - 1
+                end
+            else
+                while (j > 0) and rarity_int[out_table[j][method]] < rarity_int[key[method]] do
+                    out_table[j + 1] = out_table[j]
+                    j = j - 1
+                end
+            end
+        else
+            -- not proud of it, but it works
+            if ascend then
+                while (j > 0) and (method == "percentage" and 100 - tonumber(string.sub(out_table[j][method], 1, #out_table[j][method] - 1)) or out_table[j][method]) > (method == "percentage" and 100 - tonumber(string.sub(key[method], 1, #key[method] - 1)) or key[method]) do
+                    out_table[j + 1] = out_table[j]
+                    j = j - 1
+                end
+            else
+                while (j > 0) and (method == "percentage" and 100 - tonumber(string.sub(out_table[j][method], 1, #out_table[j][method] - 1)) or out_table[j][method]) < (method == "percentage" and 100 - tonumber(string.sub(key[method], 1, #key[method] - 1)) or key[method]) do
+                    out_table[j + 1] = out_table[j]
+                    j = j - 1
+                end
+            end
+        end
+        out_table[j + 1] = key
+    end
+    return out_table
+end
+
+local function date_sort(in_table, ascend)
+    local out_table = in_table
+    local n = #out_table
+    for i = 2, n do 
+        local key = out_table[i]
+        local j = i - 1
+
+        if ascend then
+            while (j > 0) and out_table[j]["date"] > key["date"] do
+                out_table[j + 1] = out_table[j]
+                j = j - 1
+            end
+        else
+            while (j > 0) and out_table[j]["date"] < key["date"] do
+                out_table[j + 1] = out_table[j]
+                j = j - 1
+            end
+        end
+        out_table[j + 1] = key
+    end
+    return out_table
 end
 
 local function pulsate(time, range, speed) 
@@ -613,6 +691,7 @@ local function get_r_skin(luck, item_num, cfg)
     end
 
     return_skin.r, return_skin.g, return_skin.b, return_skin.rarity, return_skin.num = get_skin_details(cfg, skin_rarity)
+    return_skin.rarity_int = 6 - skin_rarity
 
     local w_roll = fix_float(100 - (math_random(0, 10000) / 100))
     if w_roll >= 0 and w_roll <= 9.93 then
@@ -802,7 +881,7 @@ local function add_item_to_inventory(case, skin)
 end
 
 local function load_inventory()
-    local mod_inventory = inventory -- felt right
+    local mod_inventory = inventory -- temp copy
     for i = 1, #mod_inventory do
         local i_skin = mod_inventory[i]
         local skin_dir = i_skin.image_dir
@@ -814,6 +893,20 @@ local function load_inventory()
     inventory = mod_inventory
 end
 load_inventory()
+
+-- sort
+local function sort_inventory()
+    local type, method = ui_get(menu.cases_sort_t), "rarity_int"
+    if type == "Price" then
+        method = "points"
+    elseif type == "Rarity" then
+        method = "rarity"
+    elseif type == "Chance" then
+        method = "percentage"
+    end   
+    local mod_inventory = sort(inventory, not ui_get(menu.cases_ascend), method)
+    inventory = mod_inventory
+end
 
 local function calc_points(difference)
     points = points + difference
@@ -867,21 +960,24 @@ client_set_event_callback('setup_command', function (cmd)
     cmd.in_attack2 = false 
 end)
 
+local spin_lock = false
 local function activate_spin()
-    calc_points(-case_cost)
+    if not spin_lock then
+        calc_points(-case_cost)
 
-    current_case = queued_case
-    current_case_name = case_menu_list[(ui_get(menu.cases_case) or 0) + 1]
+        current_case = queued_case
+        current_case_name = case_menu_list[(ui_get(menu.cases_case) or 0) + 1]
 
-    bttn_rest = true
-    fill_case = true
-    do_open_case = true    
-    fill_case = true
-    is_in_animation = false
-    spin_speed = 1
-    spin_x_offset = 0
+        bttn_rest = true
+        fill_case = true
+        do_open_case = true    
+        fill_case = true
+        is_in_animation = false
+        spin_speed = 1
+        spin_x_offset = 0
 
-    added_item = false
+        added_item = false
+    end
 end
 
 local function skeet_box(s_x, s_y, s_w, s_h, s_alpha, do_gradient)
@@ -988,7 +1084,8 @@ local function mouse_listener() -- self explanitory
                     client_exec("playvol ui/csgo_ui_crate_open " .. ui_get(menu.cases_volume) / 100)
                 end
 
-                activate_spin()                       
+                activate_spin()        
+                spin_lock = true               
             else
                 bttn_rest = true
                 client_exec("playvol ui/panorama/lobby_error_01.wav " .. ui_get(menu.cases_volume) / 100)
@@ -1148,6 +1245,7 @@ client_set_event_callback("paint_ui", function() -- main
                 if ui_get(menu.cases_hotkey) and not is_in_animation then
                     if points >= case_cost then
                         activate_spin()
+                        spin_lock = true
                     end
                 end
 
@@ -1256,6 +1354,12 @@ client_set_event_callback("paint_ui", function() -- inventory handling
                                 l_clicked = false
                             end
                         end
+                    end
+
+                    -- manual sort check
+                    if manual_sort then
+                        manual_sort = false
+                        sort_inventory()
                     end
 
                     local j = 0
@@ -1413,6 +1517,7 @@ client_set_event_callback("paint_ui", function() -- seperate callback because li
                     if spin_speed <= 0 then
                         box_alpha = 0
                         is_in_animation = false
+                        spin_lock = false
                     end
 
                     if not is_in_animation then
@@ -1429,6 +1534,65 @@ client_set_event_callback("paint_ui", function() -- seperate callback because li
                                 points_added_alpha = 1
                             else
                                 add_item_to_inventory(current_case, skin_opened)
+
+                                -- chat unbox handler
+                                if ui_get(menu.cases_chat) then
+                                    local local_player = entity_get_local_player()
+                                    if local_player ~= nil then  
+                                        local unbox_type = ui_get(menu.cases_chat_v)
+                                        local white = fromhex("01")
+                                        local yellow = fromhex("09")
+                                        local item_name
+                                        local pre_item_name = (ui_get(menu.cases_chance) and skin_opened.wear .. ", " or "") .. tostring(skin_hover.rarity == "Exceedingly Rare" and "★ " or "") .. (skin_hover.stattrack and "StatTrak™ " or "")    
+                                        if string.find(current_case[skin_opened.num].full_name, "★") then
+                                            item_name = inventory[#inventory].name
+                                        else
+                                            item_name = current_case[skin_opened.num].full_name
+                                        end
+                                        print("NAME : " .. skin_opened.num)
+                                        if ui_get(menu.cases_chance) and unbox_type ~= "Realistic Radio" then
+                                            item_name = item_name .. white .. " (".. skin_opened.percentage .. ")"
+                                        end
+
+                                        local rarity = skin_opened.rarity      
+                                        local name_end = (unbox_type ~= "Realistic Radio" and pre_item_name or "")                              
+                                        if rarity == "Mil-spec grade" or rarity == "Restricted" then -- no purple color :( , so just use blue
+                                            pre_item_name = fromhex("0C") .. name_end
+                                        elseif rarity == 'Classified' then
+                                            pre_item_name = fromhex("0E") .. name_end
+                                        elseif rarity == "Exceedingly Rare" or rarity == "Covert" then
+                                            pre_item_name = fromhex("0F") .. name_end
+                                        end
+                            
+                                        local should_send = true
+                                        if ui_get(menu.cases_rares) then
+                                            if rarity == "Mil-spec grade" or rarity == "Restricted" then
+                                                should_send = false
+                                            end
+                                        end
+
+                                        if should_send then             
+                                            local team_color = (unbox_type ~= "Realistic Radio" and fromhex("04") or fromhex("03"))
+                                            if unbox_type ~= "Realistic Radio" then
+                                                local message = "opened a " .. yellow .. current_case_name .. white .. " and found a: " .. (ui_get(menu.cases_indent) and " " or "")  .. pre_item_name .. item_name
+                                                if unbox_type == "Fake Radio" then
+                                                    client_exec("playerchatwheel . \"", " " .. team_color .. entity_get_player_name(local_player) .. white .. " " .. message .. "\"")
+                                                elseif unbox_type == "All Chat" then
+                                                    client_exec("say " .. message)
+                                                else
+                                                    client_exec("say_team " .. message)
+                                                end
+                                            else
+                                                local message = "has opened a container and found: " .. pre_item_name  .. item_name
+                                                client_exec("playerchatwheel . \"", "Cheer! " .. team_color .. entity_get_player_name(local_player) .. white .. " " .. message .. "\"")
+                                            end
+                                        end
+                                    end
+                                end
+
+                                if ui_get(menu.cases_auto) then
+                                    sort_inventory()
+                                end
                                 load_inventory()
                             end
                             added_item = true
@@ -1446,62 +1610,6 @@ client_set_event_callback("paint_ui", function() -- seperate callback because li
                         if ui_get(menu.cases_audio) then
                             client_exec("playvol ui/csgo_ui_crate_display " .. ui_get(menu.cases_volume) / 100)
                         end
-                        
-                        -- chat unbox handler
-                        if ui_get(menu.cases_chat) then
-                            local local_player = entity_get_local_player()
-                            if local_player ~= nil then  
-                                local unbox_type = ui_get(menu.cases_chat_v)
-                                local white = fromhex("01")
-                                local yellow = fromhex("09")
-                                local item_name
-                                local pre_item_name = (ui_get(menu.cases_chance) and skin_opened.wear .. ", " or "") .. tostring(skin_hover.rarity == "Exceedingly Rare" and "★ " or "") .. (skin_hover.stattrack and "StatTrak™ " or "")    
-                                if string.find(current_case[skin_opened.num].full_name, "★") then
-                                    item_name = inventory[#inventory].name
-                                else
-                                    item_name = current_case[skin_opened.num].full_name
-                                end
-                                
-                                if ui_get(menu.cases_chance) and unbox_type ~= "Realistic Radio" then
-                                    item_name = item_name .. white .. " (".. skin_opened.percentage .. ")"
-                                end
-
-                                local rarity = skin_opened.rarity      
-                                local name_end = (unbox_type ~= "Realistic Radio" and pre_item_name or "")                              
-                                if rarity == "Mil-spec grade" or rarity == "Restricted" then -- no purple color :( , so just use blue
-                                    pre_item_name = fromhex("0C") .. name_end
-                                elseif rarity == 'Classified' then
-                                    pre_item_name = fromhex("0E") .. name_end
-                                elseif rarity == "Exceedingly Rare" or rarity == "Covert" then
-                                    pre_item_name = fromhex("0F") .. name_end
-                                end
-                      
-                                local should_send = true
-                                if ui_get(menu.cases_rares) then
-                                    if rarity == "Mil-spec grade" or rarity == "Restricted" then
-                                        should_send = false
-                                    end
-                                end
-
-                                if should_send then             
-                                    local team_color = (unbox_type ~= "Realistic Radio" and fromhex("04") or fromhex("03"))
-                                    if unbox_type ~= "Realistic Radio" then
-                                        local message = "opened a " .. yellow .. current_case_name .. white .. " and found a: " .. (ui_get(menu.cases_indent) and " " or "")  .. pre_item_name .. item_name
-                                        if unbox_type == "Fake Radio" then
-                                            client_exec("playerchatwheel . \"", " " .. team_color .. entity_get_player_name(local_player) .. white .. " " .. message .. "\"")
-                                        elseif unbox_type == "All Chat" then
-                                            client_exec("say " .. message)
-                                        else
-                                            client_exec("say_team " .. message)
-                                        end
-                                    else
-                                        local message = "has opened a container and found: " .. pre_item_name  .. item_name
-                                        client_exec("playerchatwheel . \"", "Cheer! " .. team_color .. entity_get_player_name(local_player) .. white .. " " .. message .. "\"")
-                                    end
-                                end
-                            end
-                        end
-
                     end
                 end
             end
